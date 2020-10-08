@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1" />
+	<meta name="viewport" content="width=device-width" />
+	<meta http-equiv="Content-Security-Policy" content="default-src 'self';script-src 'self' 'unsafe-inline';style-src 'self' 'unsafe-inline';" />
+	<meta name="referrer" content="no-referrer" />
+	<meta http-equiv="X-DNS-Prefetch-Control" content="off" />
+
+	<title>Lifecycle</title>
+
+	<style type="text/css">
+		html,
+		body {
+			position: relative;
+			display: block;
+			font-size: 16px;
+		}
+
+		dl {
+			background-color: white;
+		}
+
+		dt {
+			font-size: 1.35em;
+			position: sticky;
+			top: 0;
+			background-color: grey;
+			color: white;
+			font-weight: bold;
+			padding: 0.25em;
+
+		}
+
+        dt a {
+            color: white;
+            text-decoration-color: silver;
+        }
+
+        dl a[href="#"],
+        dl a[href=""] {
+        		position:relative;
+        		display:block;
+        		visibility: hidden;
+        		top: -2em;
+	        	height: 0;
+	        	width: 0;
+        		z-index: -1;
+        }
+
+		dd {
+			font-weight: bolder;
+			border: solid 1px dimgrey;
+			padding: 0.25em;
+			background-color: GhostWhite;
+			/*background-color: chartreuse;*/
+			margin: 0.2em;
+			font-size: 1em;
+
+		}
+
+		dd span {
+			display: inline;
+
+		}
+
+		dd ul {
+			list-style-position: outside;
+			list-style: none;
+		}
+		dd li {
+			border: solid 1px black;
+			padding: 0.25em;
+			margin: 0.25em;
+			background-color: transparent;
+		}
+
+		time {
+			background-color: green;
+			display: table-cell;
+			clear: both;
+			width: auto;
+			/* font-weight: bold; */
+			padding: 0.25em;
+		}
+
+		time[datetime] {
+			background-color: aquamarine;
+		}
+        footer time {
+            background-color: transparent;
+        }
+
+		.hint:before {
+			content: "HINWEIS: ";
+		}
+
+		.hint {
+			display: block;
+			font-style: italic;
+			font-weight: normal;
+		}
+
+
+
+		.upcoming {
+			/* 1 Year */
+			background-color: yellow;
+		}
+
+
+
+
+		.soon:before {
+			content: "Änderrung innerhalb der nächsten 90 Tage: ";
+			background-color: #00CED1;
+			display: block;
+			padding: 0.5em;
+		}
+
+		.soon {
+			/* 90 days */
+			/*animation: blend 5s linear  0s infinite alternate;*/
+		}
+
+		@keyframes blend {
+			0% {}
+
+			25% {}
+
+			50% {}
+
+			75% {}
+
+			100% {
+				border-color: #00CED1;
+			}
+		}
+
+		.narrow {
+			background-color: yellow;
+		}
+
+		time[data-datetime="narrow"] {
+			background-color: orange;
+		}
+
+		.expire {
+			background-color: #FF4500;
+			background-color: lightcoral;
+		}
+
+		time[data-datetime="expire"] {
+			background-color: #EF3D47;
+		}
+
+		.upheld {
+			background-color: chartreuse;
+		}
+
+		time[data-datetime="upheld"]{
+			background-color: YellowGreen;
+		}
+
+		.disclaimer {
+			font-weight: bolder;
+			background-color: orangered;
+			padding: 1em;
+			border: solid 0.25em black;
+		}
+
+		.legend {
+			border: solid 1px black;
+			text-shadow: 0 0 4px white, 0 0 2px black;
+			font-weight: bold;
+		}
+
+		.legend * {
+			content: none;
+			padding: 0.5em;
+		}
+
+		.legend .narrow {
+			background: repeating-linear-gradient(-45deg, yellow, yellow 5px, orange 5px, orange 10px);
+		}
+
+		.legend .expire {
+			background: repeating-linear-gradient(-45deg, lightcoral, lightcoral 5px, #EF3D47 5px, #EF3D47 10px);
+		}
+
+		.legend span {
+			display: block;
+			font-weight: bold;
+		}
+
+		.legend .soon:before {
+			content: none;
+		}
+
+		.legend .soon {
+			background-color: #00CED1;
+		}
+
+		.legend .default {
+			background-color: chartreuse;
+		}
+
+		.legend .testing,
+		.testing {
+			background-color: BlueViolet;
+		}
+
+		nav {
+			margin: 1em 0;
+			border: solid 1px black;
+		}
+
+		nav span {
+			display: block;
+			font-weight: bold;
+			padding: 0.5em;
+			font-size: 1em;
+			text-shadow: 0 0 4px white, 0 0 2px black;
+		}
+
+		nav a {
+			display: block;
+			font-weight: bold;
+			color: whitesmoke;
+			margin: 0.25em;
+			background-color: grey;
+			padding: 0.25em;
+
+		}
+
+		nav a:hover {
+			background-color: lightgray;
+			color: dimgrey;
+		}
+
+	</style>
+
+	<script type="text/javascript">
+		if (document.addEventListener != undefined) {
+			document.addEventListener("DOMContentLoaded", function(event) {
+				//alert("DOM loaded");
+				initTime();
+			});
+		} else { // IE < 9 AB 2016 kann auf IE 7 & 8 verzichtet werden
+			document.onreadystatechange = function() {
+				if (document.readyState == "interactive") {
+					//initApplication();
+					//alert("DOM LUPPT");
+					initTime();
+
+
+				}
+			}
+		}
+
+		var initTime = function() {
+
+			// prevent clickability of anchors without id/name jump destination
+			let achors_elements = document.querySelectorAll('a[href="#"], a[href=""]');
+			achors_elements.forEach( (anchor_element) => anchor_element.addEventListener('click', function (e) {
+				e.preventDefault;
+				return false;
+			}));
+
+			//alert("initTime running");
+			var momentum = Date.now();
+			var getTimes = document.querySelectorAll('time[datetime]');
+			var _default = 'upheld'
+
+			for (var i = 0, len = getTimes.length; i < len; i++) {
+
+				var getTimeAttributeDatetime = getTimes[i].getAttribute('datetime');
+				var getTimeAttributeDataDatetime = getTimes[i].getAttribute('data-datetime');
+
+				var getTimeAttributeDatetimeDATE = new Date(getTimeAttributeDatetime);
+				getTimes[i].innerHTML = getTimeAttributeDatetimeDATE.toLocaleString();
+
+
+				var millisecOfgetTime = Date.parse(getTimeAttributeDatetime);
+				if (i < 2) {
+					//alert(millisecOfgetTime);
+				}
+
+				console.log(getTimes[i].parentNode.nodeName);
+				if ((millisecOfgetTime - momentum) < 1) {
+					getTimes[i].parentNode.setAttribute('class', getTimeAttributeDataDatetime);
+				} else if (getTimes[i].parentNode.classList.length === 0 && getTimes[i].parentNode.nodeName.toUpperCase() !== 'LI') {
+					getTimes[i].parentNode.setAttribute('class', _default);
+				}
+				if (
+					((millisecOfgetTime - momentum) < (90 * 1000 * 60 * 60 * 24 + 1)) &&
+					((millisecOfgetTime - momentum) > 0)
+				) {
+					getTimes[i].parentNode.setAttribute('class', getTimes[i].parentNode.getAttribute('class') + ' soon');
+				}
+
+			}
+
+			// create navigation anchor links and id/names allows to jump there.
+			var navi = document.querySelector('nav');
+			var headlines = document.querySelectorAll('dt');
+			for (var i = 0, len = headlines.length; i < len; i++) {
+				var headline = headlines[i].firstChild.textContent.toLowerCase().replace(/\s/g, '');
+				headlines[i].setAttribute('id', headline);
+				headlines[i].setAttribute('name', headline);
+				var linklocal = document.createElement('a');
+				linklocal.setAttribute('href', '#' + headline);
+				linklocal.textContent = headlines[i].firstChild.textContent;
+				navi.appendChild(linklocal);
+			}
+		};
+
+	</script>
+</head>
+
+<body>
+    <footer><small>Letzte Ergänzung: <time datetime="2020-10-07T18:52">14.10.2019</time></small> <small>Erstellt: <time datetime="2010">Irgendwann zwischen 2008 und 2012 herum</time></small>
+    <noscript>Aktiviertes Javascript schadet nicht, um sich die aktuellen zustände aufgehübscht anzeigen zu lassen („datetime“, siehe <a href="#legend" title="springe zu Lengende">Legende</a> und <a href="#navi" title="springe zu Navigation">Navigation</a>).</noscript>
+
+    </footer>
+
+	<h1>Lifecycle</h1>
+	<p>Eine Übersicht über Software und Geräte dessen allgemeiner Support und erweiterter Support endet.</p>
+	<p>Änderungen und aktueller Status im Support werden dank Javascript automatisch markiert (siehe <a href="#legend" title="springe zu Lengende">Legende</a>).</p>
+
+	<p class="disclaimer">Keine Garantie auf Richtigkeit. Der Support auf Herstellerseite kann sich verändern. Auch sind nicht immer alle Daten akkurat und daher nur geschätzt. Die Daten werden nur sporadisch und vereinzelt aktualisiert. </p>
+
+	<a href="#" id="legend" name="legend"></a>
+	<div class="legend">
+		<span>Legende:</span>
+		<div class="narrow">Support für Bugfixes und ggf. neue Features endet.</div>
+		<div class="expire">Support für Security Updates endet.</div>
+		<div class="soon">Änderung innerhalb der nächsten 90 Tage bei dem Aktiven- oder dem Sicherheits-Support.</div>
+		<div class="testing">Befindet sich in der Testphase (Beta/Releas-Candidat). Vorraussichtlicher Support für eine etwaige Finale Version wird nur geschätzt.</div>
+		<div class="default">Voller Support vorhanden.</div>
+	</div>
+
+	<a href="#navi" id="navi" name="navi"></a>
+	<nav><span>Navigation:</span><noscript>Javascript benötigt</noscript>
+	</nav>
+
+	<h1>Browser</h1>
+	<p>Windows: Bis 12. Januar 2016 muss der Internet Explorer auf die jeweils höchste Version des jeweiligen Betriebssystems geupgradet werden. Der Extended Support-Zeitraum beträgt fünf (5) Jahre und beinhaltet kostenlose Sicherheitsupdates und gebührenpflichtigen Hotfixsupport.</p>
+
+	<dl>
+		<dt>Internet Explorer</dt>
+
+		<dd>6
+			<time data-datetime="expire" datetime="2014-04-08">08.04.2014</time>
+		</dd>
+
+		<dd class="narrow">7 <span class="hint">Der Support für Desktop Betriebssysteme endet zuerst. Anschließend für Windows Embedded for Point of Service (WEPOS).</span>
+			<time data-datetime="expire" datetime="2016-01-12">12. Januar 2016</time>
+			<time data-datetime="expire" datetime="2016-04-12">12.04.2016</time>
+			<ul>
+				<li>Windows Embedded Compact 7 <time data-datetime="narrow" datetime="2016-04-12">12.04.2016</time><time data-datetime="expire" datetime="2021-04-13">13.04.2021</time></li>
+				<li>Windows Embedded Compact 2013 <time data-datetime="narrow" datetime="2018-10-09">09.10.2018</time><time data-datetime="expire" datetime="2023-10-10">10.10.2023</time></li>
+			</ul>
+		</dd>
+
+		<dd class="expire">8 <span class="hint">Der Support für Desktop Betriebssysteme endet zuerst. Anschließend für Embedded-Systeme.</span>
+			<ul>
+				<li>Windows Vista, Windows 7 <time data-datetime="expire" datetime="2016-01-12">12. Januar 2016</time></li>
+				<li>Windows Embedded Standard 2009 (WES09) <time data-datetime="expire" datetime="2019-01-08">08.01.2019</time></li>
+				<li>Windows Embedded POSReady 2009 <time data-datetime="expire" datetime="2019-04-09">09.04.2019</time></li>
+				<li>Windows Thin PC <span class="hint">Am 10. Januar 2017 wurde IE8 durch IE11 ersetzt. Der Security Support für Thin PC endet 2021-10-12.</span><time data-datetime="expire" datetime="2017-01-10">10.01.2017</time></li>
+			</ul>
+		</dd>
+
+		<dd class="expire">9 <span class="hint">Der Support für Desktop Betriebssysteme endet zuerst. Anschließend für Server-Systeme.</span>
+			<ul>
+				<li>Windows Vista (SP2) <time data-datetime="expire" datetime="2017-04-11">11.04.2017</time></li>
+				<li>Windows Server 2008 (SP2) <time data-datetime="expire" datetime="2020-01-14">14.01.2020</time></li>
+			</ul>
+		</dd>
+
+		<dd class="expire">10 <span class="hint">Der Support für Desktop Betriebssysteme endet zuerst. Anschließend für Server- und Embedded-Systeme. Am 28. Januar 2019 Veröffentlichte Microsoft das IE 10 nur noch bis 14. Januar 2020 Sicherheitsupdates erhält und Kunden des „Server 2012“ und „Embedded 8 Standard“ müssen bis zum 31. Januar 2020 auf den IE 11 wechseln, um weiterhin Support zu erhalten. Ursprünglich waren es der 10.01.2023 für „Server 2012“ und der 11.07.2023 für „Embedded 8 Standard“ und der IE 10 war die höchste Version für diese Systeme.</span>
+			<ul>
+				<li>Windows Vista, Windows 7 <time data-datetime="expire" datetime="2016-01-12">12. Januar 2016</time></li>
+				<li>Windows Server 2012 <time data-datetime="expire" datetime="2020-01-14">14. Januar 2020</time> <time data-datetime="expire" datetime="2020-01-31">31. Januar 2020</time></li>
+				<li>Windows Embedded 8 Standard <span class="hint">February 12, 2020, Internet Explorer (IE) 10 is no longer supported</span><time data-datetime="expire" datetime="2020-01-14">14. Januar 2020</time> <time data-datetime="expire" datetime="2020-01-31">31. Januar 2020</time></li>
+			</ul>
+		</dd>
+
+
+		<dd>Internet Explorer 11 <span class="hint">Der IE11 wird bereits ab 2020-11-30 nicht mehr von Microsoft Teams web app supportet und ab 2021-08-17 nicht mehr von Microsoft 365 apps supportet. Der Security Update Support wird bis zum Supportende des jeweiligen Betriebs-/Server-/Ebedded-Systems aufrecht erhalten.</span>
+			<time data-datetime="narrow" datetime="2020-11-30">30.11.2020</time><time data-datetime="narrow" datetime="2021-08-17">17.08.2021</time>
+			<ul>
+				<li>Windows 8.1 Update <time data-datetime="expire" datetime="2023-01-09">2023-01-09</time></li>
+				<li>Windows 10 <span class="hint">Das Auslaufdatum 2025 gilt für die meisten bisherigen "Re-/visionen" der unterschiedlichsten "Editionen" von Windows 10 wie z. B. IoT 2015 LTSB oder Version 1507, 1709, 1803 etc. der Home, Pro, Enterpise, etc. for Workstations, for Education etc.<time data-datetime="expire" datetime="2025-10-14">2025-10-14</time></li>
+
+				<li>Windows Server 2012 <span class="hint">February 12, 2020 Update from IE10 to IE11</span><time data-datetime="expire" datetime="2023-10-10">2023-10-10</time></li>
+				<li>Windows Server 2012 R2 <time data-datetime="expire" datetime="2023-10-10">2023-10-10</time></li>
+				<li>Windows Server 2016 and subsequent releases <time data-datetime="expire" datetime="2027-01-12">2027-01-12</time></li>
+
+				<li>Windows Embedded Standard 7 <time data-datetime="expire" datetime="2020-10-13">2020-10-13</time></li>
+				<li>Windows Embedded POSReady 7 <time data-datetime="expire" datetime="2021-10-12">2021-10-12</time></li>
+				<li>Windows Thin PC <span class="hint">January 10, 2017, IE 11 replaced IE 8</span> <time data-datetime="expire" datetime="2021-10-12">2021-10-12</time></li>
+				<li>Windows Embedded 8 Standard <span class="hint">February 12, 2020, Internet Explorer (IE) 10 is no longer supported; Die hinterlegten Daten welche angeben, bis wann der Extended (Security) Support gilt, scheinen falsch zu sein. Angeblich nur bis 12.01.2016 (was deckungsleich mit dem Mainstream Support ist) vermutlich ist aber 2021 gemeint.</span> <time data-datetime="expire" datetime="2016-01-12">2016-01-12</time></li>
+				<li>Windows 8.1 Industry Update <time data-datetime="expire" datetime="2023-07-11">2023-07-11</time></li>
+			</ul>
+
+		</dd>
+
+		<dd>Microsoft Edge Legacy <span class="hint">Nicht verwechseln mit Microsoft Edge; Das Legacy macht den Unterschied.</span>
+			<time data-datetime="expire" datetime="2021-03-09">March 9, 2021</time>
+		</dd>
+
+		<dd class="upheld">Microsoft Edge
+
+			<ul>
+				<li class="narrow">Windows 7, Windows Server 2008 R2, Windows 10 SAC RS3 and later <time data-datetime="expire" datetime="2021-07-15">15. July 2021</time></li>
+				<li class="upheld">Windows 8.1, Windows 10 Enterprise 2015 LTSC, Windows 10 Enterprise 2016 LTSC, Windows 10 Enterprise 2019 LTSC, Windows 10 Enterprise multi-session, Windows Server 2012, Windows Server 2012 R2, Windows Server 2016 (LTSC), Windows Server 2019 (LTSC), Windows Server (SAC) <span class="hint">Support Unbestimmt, aber wahrscheinlich nicht vor dem Supportende des jeweiligen Betriebs-/Server-/Ebedded-Systems. <a href="#win10" title="springe zur Windows Desktop 10 Übersicht">Siehe auch „Modern Lifecycle Policy“ unter Windows (Desktop) 10 weiter unten.</a></span></li>
+
+
+
+		</dd>
+
+	</dl>
+
+	<h1>Betriebssystem</h1>
+	<dl>
+		<dt>Windows (Desktop)</dt>
+
+		<dd>XP (SP3) <span class="hint">max. IE 8</span>
+			<time data-datetime="narrow" datetime="2009-04-14">14.04.2009</time>
+			<time data-datetime="expire" datetime="2014-04-08">08.04.2014</time>
+		</dd>
+
+		<dd>Vista (SP3) <span class="hint">max. IE 9</span>
+			<time data-datetime="narrow" datetime="2012-04-10">10.04.2012</time>
+			<time data-datetime="expire" datetime="2017-04-11">11.04.2017</time>
+		</dd>
+
+		<dd>7 (SP1) <span class="hint"><del>max.</del> IE 11 and Edge; Scheinbar kann man sich für etwas Geld einen Aufschub erkaufen (Januar 2023). „Extended Security Update Program (ESU)“ schimpft sich dieses und wer Windows 7 über die Azure Cloud nutzt (Virtual Deskop) hat es automatisch.</span>
+			<time data-datetime="narrow" datetime="2015-01-13">13.01.2015</time>
+			<time data-datetime="expire" datetime="2020-01-14">14.01.2020</time>
+		</dd>
+
+		<dd>8 (.1) <span class="hint">IE 11 and Edge</span>
+			<time data-datetime="narrow" datetime="2018-01-09">09.01.2018</time>
+			<time data-datetime="expire" datetime="2023-01-10">10.01.2023</time>
+		</dd>
+
+		<a href="#" id="win10" name="win10"></a>
+      <dd class="upheld">10 <span class="hint">Ab Windows 10 gilt die „Modern Lifecycle Policy“. Solang Microsoft weiterhin den Dienst oder das Produkt unterstützt werden Updates dem Kunden zur Verfügung gestellt, welche Eingespielt werden müssen, sofern eine Lizenz vorliegt. Des Weiteren werden in bestimmten Fällen mit mindestens 30 bis 360 Tagen Vorwarnzeit Hinweise erteilt über die es sich zu informieren gilt – außer es gibt ein Nachfolge Produkt/Dienst (https://support.microsoft.com/de-de/help/30881/modern-lifecycle-policy).</span>
+      </dd>
+
+	</dl>
+
+
+
+	<h1>Apple Devices</h1>
+	<p>Letzte Überprüfung und Ergänzung der Apple Geräte: <time datetime="2019-10-14T06:05">2019-10-14</time></p>
+	<p>Apple Produkte sind Obsolete nach 7 Jahren und der Hardware Service wird AUSNAHMSLOS eingestellt. Nach 5 Jahren gelten die Produkte als "Vintage" (also gereift oder altmodisch) und der Hardware Service wird eingestellt. Und natürlich gilt: ausnahmen bestätigen die Regel.</p>
+
+	<dl>
+		<dt><a href="http://support.apple.com/HT201296" title="Identify your iPhone model">iPhone</a></dt>
+
+		<dd>Original
+			<time data-datetime="narrow" datetime="2012">2012</time>
+			<time data-datetime="expire" datetime="2014">2014</time>
+		</dd>
+		<dd>3G
+			<time data-datetime="narrow" datetime="2013">2013</time>
+			<time data-datetime="expire" datetime="2015">2015</time>
+		</dd>
+		<dd>3G (China)
+			<time data-datetime="narrow" datetime="2014">2014</time>
+			<time data-datetime="expire" datetime="2016">2016</time>
+		</dd>
+		<dd>3GS
+			<time data-datetime="narrow" datetime="2014">2014</time>
+			<time data-datetime="expire" datetime="2016">2016</time>
+		</dd>
+		<dd>4 (GSM)
+			<time data-datetime="narrow" datetime="2015">2015</time>
+			<time data-datetime="expire" datetime="2017">2017</time>
+		</dd>
+		<dd>4 (CDMA)
+			<time data-datetime="narrow" datetime="2016">2016</time>
+			<time data-datetime="expire" datetime="2018">2018</time>
+		</dd>
+		<dd>4s <span class="hint">Up to iOS 8</span>
+			<time data-datetime="narrow" datetime="2016">2016</time>
+			<time data-datetime="expire" datetime="2018">2018</time>
+		</dd>
+		<dd>5
+			<time data-datetime="narrow" datetime="2017">2017</time>
+			<time data-datetime="expire" datetime="2019">2019</time>
+		</dd>
+		<dd>5c
+			<time data-datetime="narrow" datetime="2018">2018</time>
+			<time data-datetime="expire" datetime="2020">2020</time>
+		</dd>
+		<dd>5s
+			<time data-datetime="narrow" datetime="2018">2018</time>
+			<time data-datetime="expire" datetime="2020">2020</time>
+		</dd>
+		<dd>6 Plus
+			<time data-datetime="narrow" datetime="2019">2019</time>
+			<time data-datetime="expire" datetime="2021">2021</time>
+		</dd>
+		<dd>6
+			<time data-datetime="narrow" datetime="2019">2019</time>
+			<time data-datetime="expire" datetime="2021">2021</time>
+		</dd>
+		<dd>6s Plus
+			<time data-datetime="narrow" datetime="2020">2020</time>
+			<time data-datetime="expire" datetime="2022">2022</time>
+		</dd>
+		<dd>6s
+			<time data-datetime="narrow" datetime="2020">2020</time>
+			<time data-datetime="expire" datetime="2022">2022</time>
+		</dd>
+		<dd>7 Plus
+			<time data-datetime="narrow" datetime="2021">2021</time>
+			<time data-datetime="expire" datetime="2023">2023</time>
+		</dd>
+		<dd>7
+			<time data-datetime="narrow" datetime="2021">2021</time>
+			<time data-datetime="expire" datetime="2023">2023</time>
+		</dd>
+		<dd>8 Plus
+			<time data-datetime="narrow" datetime="2022">2022</time>
+			<time data-datetime="expire" datetime="2024">2024</time>
+		</dd>
+		<dd>8
+			<time data-datetime="narrow" datetime="2022">2022</time>
+			<time data-datetime="expire" datetime="2024">2024</time>
+		</dd>
+		<dd>X
+			<time data-datetime="narrow" datetime="2022">2022</time>
+			<time data-datetime="expire" datetime="2024">2024</time>
+		</dd>
+		<dd>XS Max
+			<time data-datetime="narrow" datetime="2023">2023</time>
+			<time data-datetime="expire" datetime="2025">2025</time>
+		</dd>
+		<dd>XS
+			<time data-datetime="narrow" datetime="2023">2023</time>
+			<time data-datetime="expire" datetime="2025">2025</time>
+		</dd>
+		<dd>11
+			<time data-datetime="narrow" datetime="2024">2024</time>
+			<time data-datetime="expire" datetime="2026">2026</time>
+		</dd>
+		<dd>11 Pro
+			<time data-datetime="narrow" datetime="2024">2024</time>
+			<time data-datetime="expire" datetime="2026">2026</time>
+		</dd>
+		<dd>11 Pro Max
+			<time data-datetime="narrow" datetime="2024">2024</time>
+			<time data-datetime="expire" datetime="2026">2026</time>
+		</dd>
+
+
+
+
+		<dt><a href="https://support.apple.com/HT201471" title="Produktübersicht der iPads von Apple">iPad</a></dt>
+
+		<dd>iPad
+			<time data-datetime="narrow" datetime="2015">2015</time>
+			<time data-datetime="expire" datetime="2017">2017</time>
+		</dd>
+		<dd>iPad 2
+			<time data-datetime="narrow" datetime="2016">2016</time>
+			<time data-datetime="expire" datetime="2018">2018</time>
+		</dd>
+		<dd>iPad (3rd generation)
+			<time data-datetime="narrow" datetime="2017">2017</time>
+			<time data-datetime="expire" datetime="2019">2019</time>
+		</dd>
+		<dd>iPad (4th generation)
+			<time data-datetime="narrow" datetime="2017">2017</time>
+			<time data-datetime="expire" datetime="2019">2019</time>
+		</dd>
+		<dd>iPad (5th generation)
+			<time data-datetime="narrow" datetime="2022">2022</time>
+			<time data-datetime="expire" datetime="2024">2024</time>
+		</dd>
+		<dd>iPad (6th generation)
+			<time data-datetime="narrow" datetime="2023">2023</time>
+			<time data-datetime="expire" datetime="2025">2025</time>
+		</dd>
+		<dd>iPad (7th generation)
+			<time data-datetime="narrow" datetime="2024">2024</time>
+			<time data-datetime="expire" datetime="2026">2026</time>
+		</dd>
+
+		<dd>iPad mini
+			<time data-datetime="narrow" datetime="2017">2017</time>
+			<time data-datetime="expire" datetime="2019">2019</time>
+		</dd>
+		<dd>iPad mini 2 <span class="hint">Erschienen 2013 und 2014</span>
+			<time data-datetime="narrow" datetime="2018">2018</time>
+			<time data-datetime="expire" datetime="2020">2020</time>
+		</dd>
+		<dd>iPad mini 3
+			<time data-datetime="narrow" datetime="2019">2019</time>
+			<time data-datetime="expire" datetime="2021">2021</time>
+		</dd>
+		<dd>iPad mini 4
+			<time data-datetime="narrow" datetime="2020">2020</time>
+			<time data-datetime="expire" datetime="2022">2022</time>
+		</dd>
+		<dd>iPad mini (5th generation)
+			<time data-datetime="narrow" datetime="2024">2024</time>
+			<time data-datetime="expire" datetime="2026">2026</time>
+		</dd>
+
+		<dd>iPad Air <span class="hint">Erschienen 2013 und 2014</span>
+			<time data-datetime="narrow" datetime="2018">2018</time>
+			<time data-datetime="expire" datetime="2020">2020</time>
+		</dd>
+		<dd>iPad Air 2
+			<time data-datetime="narrow" datetime="2019">2019</time>
+			<time data-datetime="expire" datetime="2021">2021</time>
+		</dd>
+		<dd>iPad Air (3rd generation)
+			<time data-datetime="narrow" datetime="2024">2024</time>
+			<time data-datetime="expire" datetime="2026">2026</time>
+		</dd>
+
+		<dd>iPad Pro (12.9-inch)
+			<time data-datetime="narrow" datetime="2020">2020</time>
+			<time data-datetime="expire" datetime="2022">2022</time>
+		</dd>
+		<dd>iPad Pro (9.7-inch)
+			<time data-datetime="narrow" datetime="2021">2021</time>
+			<time data-datetime="expire" datetime="2023">2023</time>
+		</dd>
+		<dd>iPad Pro (10.5-inch)
+			<time data-datetime="narrow" datetime="2022">2022</time>
+			<time data-datetime="expire" datetime="2024">2024</time>
+		</dd>
+		<dd>iPad Pro 12.9-inch (2nd generation)
+			<time data-datetime="narrow" datetime="2022">2022</time>
+			<time data-datetime="expire" datetime="2024">2024</time>
+		</dd>
+		<dd>iPad Pro 12.9-inch (3rd generation)
+			<time data-datetime="narrow" datetime="2023">2023</time>
+			<time data-datetime="expire" datetime="2025">2025</time>
+		</dd>
+		<dd>iPad Pro 11-inch
+			<time data-datetime="narrow" datetime="2023">2023</time>
+			<time data-datetime="expire" datetime="2025">2025</time>
+		</dd>
+
+
+
+
+		<dt><a href="https://support.apple.com/HT204217" title="Identify your iPod model">iPod</a></dt>
+
+		<dd>(Scroll wheel) Scroll wheel 5 GB
+			<time data-datetime="narrow" datetime="2006-10">2006-10</time>
+			<time data-datetime="expire" datetime="2008-10">2008-10</time>
+		</dd>
+		<dd>(Scroll wheel) Scroll wheel 10 GB
+			<time data-datetime="narrow" datetime="2007-03">2007-03</time>
+			<time data-datetime="expire" datetime="2009-03">2009-03</time>
+		</dd>
+		<dd>(Touch wheel) Touch wheel 10 GB or 20 GB
+			<time data-datetime="narrow" datetime="2007-07">2007-07</time>
+			<time data-datetime="expire" datetime="2009-07">2009-07</time>
+		</dd>
+		<dd>(dock connector) Touch wheel 10 GB,15 GB, or 30 GB
+			<time data-datetime="narrow" datetime="2008-04">2008-04</time>
+			<time data-datetime="expire" datetime="2010-04">2010-04</time>
+		</dd>
+		<dd>(dock connector) Touch wheel 20 GB or 40 GB
+			<time data-datetime="narrow" datetime="2008-09">2008-09</time>
+			<time data-datetime="expire" datetime="2010-09">2010-09</time>
+		</dd>
+		<dd>mini Click Wheel 4 GB
+			<time data-datetime="narrow" datetime="2009-01">2009-01</time>
+			<time data-datetime="expire" datetime="2011-01">2011-01</time>
+		</dd>
+		<dd>(Click Wheel) Click Wheel 20 GB or 40 GB
+			<time data-datetime="narrow" datetime="2009-07">2009-07</time>
+			<time data-datetime="expire" datetime="2011-07">2011-07</time>
+		</dd>
+		<dd>photo (also known as iPod with color display) Click Wheel 40 GB or 60 GB
+			<time data-datetime="narrow" datetime="2009-10">2009-10</time>
+			<time data-datetime="expire" datetime="2011-10">2011-10</time>
+		</dd>
+
+		<dd>mini (2nd generation) Click Wheel 4 GB or 6 GB
+			<time data-datetime="narrow" datetime="2010-02">2010-02</time>
+			<time data-datetime="expire" datetime="2012-02">2012-02</time>
+		</dd>
+		<dd>photo(also known as iPod with color display) Click Wheel 30 GB
+			<time data-datetime="narrow" datetime="2010-02">2010-02</time>
+			<time data-datetime="expire" datetime="2012-02">2012-02</time>
+		</dd>
+		<dd>with color display Click Wheel 20 GB or 60 GB
+			<time data-datetime="narrow" datetime="2010-06">2010-06</time>
+			<time data-datetime="expire" datetime="2012-06">2012-06</time>
+		</dd>
+		<dd>nano Click Wheel 2 GB or 4 GB
+			<time data-datetime="narrow" datetime="2010-09">2010-09</time>
+			<time data-datetime="expire" datetime="2012-09">2012-09</time>
+		</dd>
+		<dd>(5th generation) Click Wheel 30 GB or 60 GB
+			<time data-datetime="narrow" datetime="2010-10">2010-10</time>
+			<time data-datetime="expire" datetime="2012-10">2012-10</time>
+		</dd>
+		<dd>nano Click Wheel 1 GB
+			<time data-datetime="narrow" datetime="2011-02">2011-02</time>
+			<time data-datetime="expire" datetime="2013-02">2013-02</time>
+		</dd>
+		<dd>nano (2nd generation) Click Wheel 2 GB, 4 GB, or 8 GB
+			<time data-datetime="narrow" datetime="2011-09">2011-09</time>
+			<time data-datetime="expire" datetime="2013-09">2013-09</time>
+		</dd>
+		<dd>(5th generation Late 2006) Click Wheel 30 GB or 80 GB
+			<time data-datetime="narrow" datetime="2011-09">2011-09</time>
+			<time data-datetime="expire" datetime="2013-09">2013-09</time>
+		</dd>
+
+		<dd>nano (3rd generation) Click Wheel 4 GB or 8 GB
+			<time data-datetime="narrow" datetime="2012-09">2012-09</time>
+			<time data-datetime="expire" datetime="2014-09">2014-09</time>
+		</dd>
+		<dd>classic Click Wheel 80 GB or 160 GB
+			<time data-datetime="narrow" datetime="2012-09">2012-09</time>
+			<time data-datetime="expire" datetime="2014-09">2014-09</time>
+		</dd>
+		<dd>touch Multi-Touch display 8 GB or 16 GB
+			<time data-datetime="narrow" datetime="2012-09">2012-09</time>
+			<time data-datetime="expire" datetime="2014-09">2014-09</time>
+		</dd>
+		<dd>touch Multi-Touch display 32 GB
+			<time data-datetime="narrow" datetime="2013-02">2013-02</time>
+			<time data-datetime="expire" datetime="2015-02">2015-02</time>
+		</dd>
+
+		<dd>nano (4th generation) Click Wheel 8 GB or 16 GB
+			<time data-datetime="narrow" datetime="2013-09">2013-09</time>
+			<time data-datetime="expire" datetime="2015-09">2015-09</time>
+		</dd>
+
+		<dd>classic Click Wheel 120 GB
+			<time data-datetime="narrow" datetime="2013-09">2013-09</time>
+			<time data-datetime="expire" datetime="2015-09">2015-09</time>
+		</dd>
+
+		<dd>nano (5th generation) Click Wheel 8 GB or 16 GB
+			<time data-datetime="narrow" datetime="2014-09">2014-09</time>
+			<time data-datetime="expire" datetime="2016-09">2016-09</time>
+		</dd>
+		<dd>touch (2nd generation) Multi-Touch display 8 GB, 16 GB, or 32 GB
+			<time data-datetime="narrow" datetime="2013-09">2013-09</time>
+			<time data-datetime="expire" datetime="2015-09">2015-09</time>
+		</dd>
+		<dd>touch (3rd generation) Multi-Touch display 32 GB or 64 GB
+			<time data-datetime="narrow" datetime="2014-09">2014-09</time>
+			<time data-datetime="expire" datetime="2016-09">2016-09</time>
+		</dd>
+		<dd>classic 160 GB (Late 2009) Click Wheel 160 GB
+			<time data-datetime="narrow" datetime="2014-09">2014-09</time>
+			<time data-datetime="expire" datetime="2016-09">2016-09</time>
+		</dd>
+
+
+		<dd>shuffle Control Pad 512 MB or 1 GB
+			<time data-datetime="narrow" datetime="2010-01">2010-01</time>
+			<time data-datetime="expire" datetime="2012-01">2012-01</time>
+		</dd>
+		<dd>shuffle (2nd generation) Control Pad 1 GB A1204: September 2006
+			<time data-datetime="narrow" datetime="2011-09">2011-09</time>
+			<time data-datetime="expire" datetime="2013-09">2013-09</time>
+		</dd>
+		<dd>shuffle (2nd generation Early 2008) Control Pad 2 GB A1204: February 2008
+			<time data-datetime="narrow" datetime="2013-02">2013-02</time>
+			<time data-datetime="expire" datetime="2015-02">2015-02</time>
+		</dd>
+		<dd>shuffle (3rd generation) Apple Earphones with Remote 4 GB A1271: March 2009
+			<time data-datetime="narrow" datetime="2014-03">2014-03</time>
+			<time data-datetime="expire" datetime="2016-03">2016-03</time>
+		</dd>
+		<dd>shuffle (3rd generation Late 2009) Apple Earphones with Remote 2 GB or 4 GB A1271: September 2009
+			<time data-datetime="narrow" datetime="2014-09">2014-09</time>
+			<time data-datetime="expire" datetime="2016-09">2016-09</time>
+		</dd>
+		<dd>shuffle (4th generation) <span class="hint">Control Pad; 2 GB; A1373: September 2010</span>
+			<time data-datetime="narrow" datetime="2015-09">2015-09</time>
+			<time data-datetime="expire" datetime="2017-09">2017-09</time>
+		</dd>
+		<dd>shuffle (4th generation Late 2012) <span class="hint">Control Pad; 2 GB; A1373: September 2012</span>
+			<time data-datetime="narrow" datetime="2017-09">2017-09</time>
+			<time data-datetime="expire" datetime="2019-09">2019-09</time>
+		</dd>
+		<dd>shuffle (4th generation Mid 2015) <span class="hint">Control Pad; 2 GB; A1373: July 2015</span>
+			<time data-datetime="narrow" datetime="2020-07">2020-07</time>
+			<time data-datetime="expire" datetime="2022-07">2022-07</time>
+		</dd>
+
+		<dd>nano (6th generation) Multi-Touch display 8 GB or 16 GB
+			<time data-datetime="narrow" datetime="2015-09">2015-09</time>
+			<time data-datetime="expire" datetime="2017-09">2017-09</time>
+		</dd>
+		<dd>touch (4th generation) Multi-Touch display 8 GB, 32 GB, or 64 GB
+			<time data-datetime="narrow" datetime="2015-09">2015-09</time>
+			<time data-datetime="expire" datetime="2017-09">2017-09</time>
+		</dd>
+		<dd>touch (4th generation) Multi-Touch display 8 GB, 32 GB, or 64 GB
+			<time data-datetime="narrow" datetime="2016-10">2016-10</time>
+			<time data-datetime="expire" datetime="2018-10">2018-10</time>
+		</dd>
+		<dd>touch (4th generation) Multi-Touch display 16 GB
+			<time data-datetime="narrow" datetime="2017-10">2017-10</time>
+			<time data-datetime="expire" datetime="2019-10">2019-10</time>
+		</dd>
+		<dd>touch (5th generation) Multi-Touch display 32 GB or 64 GB
+			<time data-datetime="narrow" datetime="2017-10">2017-10</time>
+			<time data-datetime="expire" datetime="2019-10">2019-10</time>
+		</dd>
+		<dd>nano (7th generation Mid 2015) <span class="hint">Einführung A1446: July 2015</span>
+			<time data-datetime="narrow" datetime="2020-07">2020-07</time>
+			<time data-datetime="expire" datetime="2022-07">2022-07</time>
+		</dd>
+		<dd>nano (7th generation) Multi-Touch display 16 GB <span class="hint">Einführung A1446: October 2012</span>
+			<time data-datetime="narrow" datetime="2017-10">2017-10</time>
+			<time data-datetime="expire" datetime="2019-10">2019-10</time>
+		</dd>
+
+		<dd>touch (5th generation 16GB, Mid 2013) Multi-Touch display 16 GB
+			<time data-datetime="narrow" datetime="2018-05">2018-05</time>
+			<time data-datetime="expire" datetime="2020-05">2020-05</time>
+		</dd>
+		<dd>touch (5th generation) Multi-Touch display 16 GB
+			<time data-datetime="narrow" datetime="2019-06">2019-06</time>
+			<time data-datetime="expire" datetime="2021-06">2021-06</time>
+		</dd>
+		<dd>touch (5th generation) Multi-Touch display 16, 32 und 64 GB <span class="hint">Einführung A1421: 2012-10</span>
+			<time data-datetime="narrow" datetime="2017-10">2017-10</time>
+			<time data-datetime="expire" datetime="2019-10">2019-10</time>
+		</dd>
+		<dd>touch (5th generation) Multi-Touch display 16, 32 und 64 GB <span class="hint">Einführung A1421: 2013-05</span>
+			<time data-datetime="narrow" datetime="2018-05">2018-05</time>
+			<time data-datetime="expire" datetime="2020-05">2020-05</time>
+		</dd>
+		<dd>touch (5th generation) Multi-Touch display 16, 32 und 64 GB <span class="hint">Einführung A1509: 2014-06</span>
+			<time data-datetime="narrow" datetime="2019-06">2019-06</time>
+			<time data-datetime="expire" datetime="2021-06">2021-06</time>
+		</dd>
+		<dd>iPod touch (6th generation) Multi-Touch display 16, 32, 64, 128 GB <span class="hint">Einführung A1574: 2015-07</span>
+			<time data-datetime="narrow" datetime="2020-07">2020-07</time>
+			<time data-datetime="expire" datetime="2022-07">2022-07</time>
+		</dd>
+		<dd>touch (7th generation) <span class="hint">Einführung A2178: May 2019; Multi-Touch display; 32, 128, 256 GB</span>
+			<time data-datetime="narrow" datetime="2024-05">2024-05</time>
+			<time data-datetime="expire" datetime="2026-05">2026-05</time>
+		</dd>
+	</dl>
+
+
+
+	<h1>Programmiersprachen</h1>
+
+	<p>PHP - Der Aktive Support endet 1 Jahr bevor der (Endgültige) Security Support endet.</p>
+
+	<dl>
+		<dt><a href="https://php.net/" title="PHP Website">PHP</a></dt>
+
+		<dd>5.3 (EOL the forever last version is 5.3.29)
+			<time data-datetime="narrow" datetime="2013-09-14">14 Aug 2013</time>
+			<time data-datetime="expire" datetime="2014-09-14">14 Aug 2014</time>
+		</dd>
+		<dd>5.4 (.45)
+			<time data-datetime="narrow" datetime="2014-09-14">14 Sep 2014</time>
+			<time data-datetime="expire" datetime="2015-09-14">14 Sep 2015</time>
+		</dd>
+		<dd>5.5 (.38)
+			<time data-datetime="narrow" datetime="2015-06-20">20 Jun 2015</time>
+			<time data-datetime="expire" datetime="2016-06-20">20 Jun 2016</time>
+		</dd>
+		<dd>5.6 (.40) <span class="hint">Version 5.6 erhielt einen verlängerten support. Ursprünglich ging es nur bis zum 28 Aug 2016 (active) und 2017 (security).</span>
+			<time data-datetime="narrow" datetime="2017-01-19">19 Jan 2017</time>
+			<time data-datetime="expire" datetime="2018-12-31">31 Dec 2018</time>
+		</dd>
+		<dd>7.0 (.33)
+			<time data-datetime="narrow" datetime="2017-12-03">3 Dec 2017</time>
+			<time data-datetime="expire" datetime="2018-12-03">3 Dec 2018</time>
+		</dd>
+		<dd>7.1 (.33)
+			<time data-datetime="narrow" datetime="2018-12-01">1 Dec 2018</time>
+			<time data-datetime="expire" datetime="2019-12-01">1 Dec 2019</time>
+		</dd>
+		<dd>7.2
+			<time data-datetime="narrow" datetime="2019-11-30">30 Nov 2019</time>
+			<time data-datetime="expire" datetime="2020-11-30">30 Nov 2020</time>
+		</dd>
+      <dd>7.3
+			<time data-datetime="narrow" datetime="2020-12-06">06 Dec 2020</time>
+			<time data-datetime="expire" datetime="2021-12-06">06 Dec 2021</time>
+		</dd>
+		<dd>7.4
+			<time data-datetime="narrow" datetime="2021-11-28">28 Nov 2021</time>
+			<time data-datetime="expire" datetime="2022-11-28">28 Nov 2022</time>
+		</dd>
+		<dd class="testing">8 Beta <span class="hint">Release Candidate 1; Release Candidate 2, planned for Oct 15 2020</span>
+			<time data-datetime="narrow" datetime="2022-10-15">2022</time>
+			<time data-datetime="expire" datetime="2023-10-15">2023</time>
+		</dd>
+
+	</dl>
+
+	<p>Python - Nach einer Finalen Version (z. B. 3.6.0) gibt es noch 5 weitere Jahre Security Updates (und ca. 2 Jahre Bugfixes 17–20 Monate). Nach dem Erscheinen der Finalen Version des Nachfolgers (z. B. 3.7.0) erscheinen die Letzten Bugfixes des Vorgängers (z. B. 3.6.x bzw. hier konkret 3.6.8). So zumindest die Ansage. https://www.python.org/dev/peps/pep-0602/</p>
+
+	<dl>
+		<dt><a href="https://python.org" title="Python Website">Python</a></dt>
+
+		<dd>2.7 <span class="hint">Der Support wurde ein wenig verlängert ;D (current: 2.7.18 2020-04-20) [last visit: 2020-10-04]: https://www.python.org/dev/peps/pep-0373/</span>
+			<time data-datetime="narrow" datetime="2012-10-17">17-Oct-2012</time>
+			<time data-datetime="expire" datetime="2020-01-01">January 1, 2020</time>
+		</dd>
+		<dd>3.4 (EOL last version 3.4.10) <span class="hint">https://www.python.org/dev/peps/pep-0429/</span>
+			<time data-datetime="narrow" datetime="2014-09-22">22-Sep-2014</time>
+			<time data-datetime="expire" datetime="2019-03">March 18, 2019</time>
+		</dd>
+		<dd>3.5 <span class="hint">Final release 3.5.0 war September 13, 2015. https://www.python.org/dev/peps/pep-0478/</span>
+			<time data-datetime="narrow" datetime="2015-05-30">30-May-2015</time>
+			<time data-datetime="expire" datetime="2020-09-13">2020-09-13</time>
+		</dd>
+		<dd>3.6 <span class="hint">Final release 3.6.0 war 2016-12-23; letzte bugfix release 3.6.8 war 2018-12-24. https://www.python.org/dev/peps/pep-0494/</span>
+			<time data-datetime="narrow" datetime="2018-12-24">2018-12-24</time>
+			<time data-datetime="expire" datetime="2021-12-23">2021-12-23</time>
+		</dd>
+		<dd>3.7 <span class="hint">Final releas 3.7.0 war 2018-06-27; <del>Vorraussichtlich</del> letzte bugfix release 3.7.8 am 2020-06-27. https://www.python.org/dev/peps/pep-0537/ </span>
+			<time data-datetime="narrow" datetime="2020-06-27">2020-06-27</time>
+			<time data-datetime="expire" datetime="2023-06-27">2023-06-27</time>
+		</dd>
+       <dd>3.8 <span class="hint"><del>Vorraussichtlich</del> final releas 3.8.0 am 2019-10-14. Nach dem Erscheinen der Finalen Version (3.8.0) gibt es 5 Jahre Security Updates und ca. 18 Monate Bugfixes. Nach dem 3.9.0 final erschienen ist, wird es einen letzten 3.8.x bugfix geben. https://www.python.org/dev/peps/pep-0569/</span>
+			<time data-datetime="narrow" datetime="2020-10-05">2020-10-05</time>
+			<time data-datetime="expire" datetime="2024-10">October 2024</time>
+		</dd>
+		<dd>3.9 <span class="hint">Die Daten für 3.9 sind nicht final. Vorraussichtlicher final Release 2020-10-05. Das dazugehörige PEP ist noch im Entwurf (draft status). [last visit: 2020-10-07]: https://www.python.org/dev/peps/pep-0596/</span>
+			<time data-datetime="narrow" datetime="2020-10-05">2020-10-05</time>
+			<time data-datetime="expire" datetime="2025-10">October 2025</time>
+		</dd>
+		<dd>3.10 <span class="hint">Die Daten für 3.10 sind nicht final. Vorraussichtlicher final Release Monday, 2021-10-04. Das dazugehörige PEP ist noch im Entwurf (draft status). [last visit: 2020-10-04]: https://www.python.org/dev/peps/pep-0619/</span>
+			<time data-datetime="narrow" datetime="2021-10-04">2021-10-04</time>
+			<time data-datetime="expire" datetime="2026-10">October 2026</time>
+		</dd>
+	</dl>
+
+
+
+<!--
+	<ul>
+		<li></li>
+		<li></li>
+	</ul>
+
+
+	<dl>
+		<dd></dd>
+	</dl>
+-->
+
+    <h2>Quellen:</h2>
+	<div>
+
+        Microsoft:
+		http://blogs.msdn.com/b/ie/archive/2014/08/07/stay-up-to-date-with-internet-explorer.aspx
+		http://support.microsoft.com/gp/msl-ie-dotnet-an
+		http://support2.microsoft.com/lifecycle/search/
+		http://support.microsoft.com/gp/Microsoft-Internet-Explorer
+      https://support.microsoft.com/de-de/help/4488955/support-ending-for-internet-explorer-10
+      https://support.microsoft.com/de-de/help/30881/modern-lifecycle-policy
+      https://docs.microsoft.com/en-us/deployedge/microsoft-edge-supported-operating-systems
+      https://docs.microsoft.com/en-us/troubleshoot/windows-client/windows-7-eos-faq/windows-7-extended-security-updates-faq
+      https://techcommunity.microsoft.com/t5/microsoft-365-blog/microsoft-365-apps-say-farewell-to-internet-explorer-11-and/ba-p/1591666
+      <br />
+        Apple:
+		http://support.apple.com/en-us/ht1752
+		http://support.apple.com/en-us/HT201296
+		https://support.apple.com/en-us/HT201471
+		<br />
+        PHP:
+		https://php.net/supported-versions.php
+		https://php.net/eol.php
+		<br />
+        Python:
+		https://devguide.python.org/#branchstatus
+		https://devguide.python.org/devcycle/#security-branches
+		https://docs.python.org/3/faq/general.html
+		https://www.python.org/dev/peps/pep-0602/
+		https://www.python.org/dev/peps/pep-0373/
+		https://www.python.org/dev/peps/pep-0429/
+		https://www.python.org/dev/peps/pep-0478/
+		https://www.python.org/dev/peps/pep-0494/
+		https://www.python.org/dev/peps/pep-0537/
+      https://www.python.org/dev/peps/pep-0569/
+		https://www.python.org/dev/peps/pep-0596/
+		https://www.python.org/dev/peps/pep-0619/
+	</div>
+</body>
+
+</html>
