@@ -284,11 +284,12 @@
 
 
 				var millisecOfgetTime = Date.parse(getTimeAttributeDatetime);
+				/*
 				if (i < 2) {
-					//alert(millisecOfgetTime);
+					alert(millisecOfgetTime);
 				}
+				*/
 
-				console.log(getTimes[i].parentNode.nodeName);
 				if ((millisecOfgetTime - momentum) < 1) {
 					getTimes[i].parentNode.setAttribute('class', getTimeAttributeDataDatetime);
 				} else if (getTimes[i].parentNode.classList.length === 0 && getTimes[i].parentNode.nodeName.toUpperCase() !== 'LI') {
